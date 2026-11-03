@@ -39,7 +39,8 @@
     "preview": "astro preview",
     "pub": "pnpm compile && pnpm publish --no-git-checks",
     "pb": "pnpm compile && pnpm publish --no-git-checks --tag beta",
-    "astro": "astro"
+    "astro": "astro",
+    "prepare": "tsc"
   },
   "dependencies": {
     "rehype-stringify": "^10.0.1",
