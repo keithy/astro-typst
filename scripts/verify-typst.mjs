@@ -15,7 +15,7 @@
 // Usage: node scripts/verify-typst.mjs
 //
 // Set EXPECTED_TYPST_VERSION to check a specific Typst release, e.g.
-// EXPECTED_TYPST_VERSION=0.14 node scripts/verify-typst.mjs
+// EXPECTED_TYPST_VERSION=0.15 node scripts/verify-typst.mjs
 
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
@@ -106,6 +106,48 @@ try {
     );
 
     console.log("Rich SVG markers present: typst-doc, typst-text");
+
+    // --- 3. Mathematics survives the HTML export ----------------------------
+
+    // Typst 0.14 dropped mathematics from its HTML export entirely: an
+    // equation compiled to an empty element, so a page full of maths
+    // rendered as prose with the equations silently missing. Typst 0.15
+    // emits MathML instead. This check fails loudly rather than letting
+    // that regression reach a built site.
+
+    const htmlCompiler = await NodeCompiler.create();
+    const mathFile = join(workDir, "math.typ");
+    await writeFile(mathFile, "Before $x^2$ after.\n", "utf8");
+    const htmlDoc = htmlCompiler.compileHtml({ mainFilePath: mathFile });
+    assert.ok(
+        htmlDoc?.result,
+        "The compiler returned no HTML document. The probe source may have " +
+        "changed shape in a newer Typst release.",
+    );
+    const htmlOut = htmlCompiler.tryHtml(htmlDoc.result);
+    assert.ok(
+        htmlOut?.result,
+        "The compiler produced no HTML output for a document containing " +
+        "mathematics.",
+    );
+
+    const hast = htmlOut.result.hast();
+    const tagNames = [];
+    const collect = (node) => {
+        if (node.tagName) tagNames.push(node.tagName);
+        for (const child of node.children ?? []) collect(child);
+    };
+    collect(hast);
+
+    assert.ok(
+        tagNames.includes("math"),
+        "The HTML export contains no <math> element. Typst 0.14 dropped " +
+        "mathematics from its HTML export; 0.15 emits MathML. A Typst " +
+        "release that renders maths as empty elements would make a page of " +
+        "equations render as prose with the equations missing.",
+    );
+
+    console.log("Mathematics survives the HTML export: <math> present");
     console.log("Typst compatibility probe passed.");
 } finally {
     await rm(workDir, { recursive: true, force: true });
