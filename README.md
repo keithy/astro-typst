@@ -5,6 +5,12 @@
 <img alt='Supported Typst version: 0.13' src='https://img.shields.io/badge/Typst_0.13-100000?style=for-the-badge&logo=Typst&logoColor=30bdc1&labelColor=FFFFFF&color=30BDB2' />
 <img alt='Supported Typst version: 0.14' src='https://img.shields.io/badge/Typst_0.14-100000?style=for-the-badge&logo=Typst&logoColor=30bdc1&labelColor=FFFFFF&color=30BDB2' />
 
+> **This is a fork.** It is based on
+> [OverflowCat/astro-typst](https://github.com/OverflowCat/astro-typst) at
+> commit `c1ca6b2`, with changes to make the integration work on Astro 7.
+> The upstream copyright and the Apache-2.0 licence are retained; see
+> [NOTICE](./NOTICE) for the full list of modifications.
+
 An Astro [Integration](https://astro.build/integrations/) that lets you render [Typst](https://github.com/typst/typst) within [Astro](https://github.com/withastro/astro) based on [typst.ts](https://github.com/Myriad-Dreamin/typst.ts). We have made you an Astro-ish wrapper that you cannot refuse!
 
 <img src="https://repository-images.githubusercontent.com/836661120/7c4046ff-03be-45dc-a28b-393d23dcd614" alt="Demo" width="500" />

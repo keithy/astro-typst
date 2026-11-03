@@ -5,9 +5,9 @@
   "packageManager": "pnpm@10.11.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OverflowCat/astro-typst.git"
+    "url": "https://github.com/keithy/astro-typst.git"
   },
-  "homepage": "https://github.com/OverflowCat/astro-typst",
+  "homepage": "https://github.com/keithy/astro-typst",
   "description": "Use Typst within Astro",
   "keywords": [
     "typst",
@@ -33,36 +33,36 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "tsc && astro check && astro build",
+    "build": "pnpm test && pnpm compile && astro check && astro build",
     "compile": "tsc",
+    "test": "node scripts/verify-typst.mjs",
     "preview": "astro preview",
     "pub": "pnpm compile && pnpm publish --no-git-checks",
     "pb": "pnpm compile && pnpm publish --no-git-checks --tag beta",
     "astro": "astro"
   },
   "dependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "astro-integration-kit": "^0.20.0",
     "rehype-stringify": "^10.0.1",
     "typstx": "0.0.1",
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@astrojs/react": "^5.0.7",
-    "@myriaddreamin/typst-ts-node-compiler": "0.8.0-rc3",
-    "@myriaddreamin/typst-ts-renderer": "0.8.0-rc3",
-    "@myriaddreamin/typst.ts": "0.8.0-rc3",
+    "@myriaddreamin/typst-ts-node-compiler": "0.7.0",
+    "@myriaddreamin/typst-ts-renderer": "0.7.0",
+    "@myriaddreamin/typst.ts": "0.7.0",
     "@types/node": "^22.18.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "astro": "6.4.8",
+    "astro": "7.4.5",
     "astro-expressive-code": "^0.44.1",
+    "cheerio": "^1.0.0",
     "react": "^19.2.8",
     "react-confetti-explosion": "^3.0.3",
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
-    "vite": "^7.3.6"
+    "vite": "^8.0.0"
   },
   "peerDependencies": {
     "@myriaddreamin/typst-ts-node-compiler": ">=0.6.1-rc2",

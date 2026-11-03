@@ -51,7 +51,7 @@ export function getOrInitDynCompiler(): DynLayoutCompiler {
 }
 
 export function getFrontmatter($typst: NodeCompiler, source: NodeTypstDocument | CompileDocArgs) {
-    var frontmatter: Record<string, any> = {};
+    var frontmatter: Record<string, unknown> = {};
     try {
         const data = $typst.query(source, { selector: "<frontmatter>" })
         if (data?.length > 0) {
@@ -106,7 +106,6 @@ export async function renderToSVGString(source: TypstDocInput, options: AstroTyp
     }
     (options?.cheerio?.postprocess) && ($ = options?.cheerio?.postprocess($, source));
     const svgString = options?.cheerio?.stringify ? options?.cheerio?.stringify($, source) : $.html();
-    // @ts-ignore
     return {
         svg: svgString,
         frontmatter: () => doc ? getFrontmatter($typst, doc) : {},
