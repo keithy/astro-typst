@@ -86,9 +86,18 @@ on Astro 7. The changes are:
 8. Development targets
    package.json, tsconfig.json
      Development and verification target Astro 7.4.5, Vite 8, TypeScript 6
-     and typst.ts 0.7.0 (Typst 0.14.2). The published peer dependency
+     and typst.ts 0.8.0-rc3 (Typst 0.15.0). The published peer dependency
      ranges are unchanged, so consumers still select their own Typst
      release.
+
+9. Mathematics in the HTML export
+   scripts/verify-typst.mjs
+     Typst 0.14 dropped mathematics from its HTML export: an equation
+     compiled to an empty element, so a page of maths rendered as prose
+     with the equations silently missing. Typst 0.15 emits MathML. The
+     probe now asserts that the HTML export contains a <math> element, so
+     a compiler that stops emitting one fails the build rather than
+     producing a site whose equations have quietly vanished.
 
 No behavioural change is intended beyond the points above. The upstream
 README documents the integration's public API and remains the reference for
