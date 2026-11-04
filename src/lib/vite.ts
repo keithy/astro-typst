@@ -145,7 +145,8 @@ export default function (config: AstroTypstConfig, isAstroBuild = false): Plugin
                         console.warn(html);
                         throw new Error("html is a string, but it should be a hast object");
                     }
-                    html = await rehypeTypstx(html, astroConfig.markdown?.rehypePlugins ?? []);
+                    const converted = await rehypeTypstx(html, astroConfig.markdown?.rehypePlugins ?? []);
+                    html = converted.code;
                 }
             }
 
