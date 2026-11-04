@@ -18,6 +18,32 @@ let compilerIns: NodeCompiler | undefined;
 /** The cached dynamic layout compiler instance */
 let dynCompilerIns: DynLayoutCompiler | undefined;
 
+/**
+ * Serialises the work done on the shared compiler.
+ *
+ * The compiler instance is reused across documents, and a build transforms
+ * several Typst files at once. The compiler keeps per-document state while
+ * it compiles, so two documents compiling at the same time can interfere
+ * with each other — upstream reports a segment fault when several Typst
+ * files are built on a worker (issue 12).
+ *
+ * The transform hook used to avoid this by waiting a fixed second before
+ * compiling, which delayed every file by that second without actually
+ * serialising anything: the transforms all started together, so they all
+ * resumed together. This queue runs them one at a time instead, which
+ * both avoids the interference and costs no time when there is nothing to
+ * wait for.
+ */
+let compilerQueue: Promise<unknown> = Promise.resolve();
+
+function withCompiler<T>(work: ($typst: NodeCompiler) => T | Promise<T>): Promise<T> {
+    const result = compilerQueue.then(() => work(getOrInitCompiler()));
+    // Keep the queue alive even if a compile rejects, so one failure does
+    // not wedge every later document.
+    compilerQueue = result.catch(() => undefined);
+    return result;
+}
+
 function prepareSource(source: TypstDocInput, _options: any) {
     if (typeof source === "string") {
         source = { mainFileContent: source };
@@ -73,8 +99,20 @@ export function getFrontmatter($typst: NodeCompiler, source: NodeTypstDocument |
  */
 export async function renderToSVGString(source: TypstDocInput, options: AstroTypstRenderOption | undefined) {
     source = prepareSource(source, options);
-    const $typst = source.mainFileContent ? getOrInitCompiler() : initCompiler();
-    const { svg, doc } = await renderToSVGString_($typst, source);
+    // A document given as source text gets its own compiler, so it does not
+    // share the instance the queue protects.
+    if (source.mainFileContent) {
+        return renderToSVGStringWith(initCompiler(), source, options);
+    }
+    return withCompiler(($typst) => renderToSVGStringWith($typst, source, options));
+}
+
+async function renderToSVGStringWith(
+    $typst: NodeCompiler,
+    source: TypstDocInput,
+    options: AstroTypstRenderOption | undefined,
+) {
+    const { svg, doc } = await renderToSVGString_($typst, source as CompileDocArgs);
     $typst.evictCache(60);
     let $ = load(svg, {
         xml: true,
@@ -160,36 +198,37 @@ export async function renderToHTML(
 ) {
     const onlyBody = source.body;
     source = prepareSource(source, options);
-    const $typst = getOrInitCompiler();
-    const docRes = $typst.compileHtml(source);
-    if (!docRes.result) {
-        logger.error("Error compiling typst to HTML");
-        docRes.printDiagnostics();
-        return { html: "" };
-    }
-    const doc = docRes.result;
-    const html = $typst.tryHtml(doc);
-    if (!html.result) {
-        html.printDiagnostics();
-        return { html: "" };
-    }
-    var output;
-    if (onlyBody === "hast") {
-        try {
-            output = html.result.hast();
-        } catch (error) {
-            console.error(error);
-            logger.error("Please check if your peer dependencies (@myriaddreamin/typst-ts*) is >= 0.6.1-rc2.");
+    return withCompiler(($typst) => {
+        const docRes = $typst.compileHtml(source);
+        if (!docRes.result) {
+            logger.error("Error compiling typst to HTML");
+            docRes.printDiagnostics();
+            return { html: "" };
         }
-    } else {
-        output = onlyBody !== false ?
-            html.result.body() :
-            html.result.html();
-    }
-    return {
-        html: output,
-        frontmatter: () => getFrontmatter($typst, doc),
-    };
+        const doc = docRes.result;
+        const html = $typst.tryHtml(doc);
+        if (!html.result) {
+            html.printDiagnostics();
+            return { html: "" };
+        }
+        var output;
+        if (onlyBody === "hast") {
+            try {
+                output = html.result.hast();
+            } catch (error) {
+                console.error(error);
+                logger.error("Please check if your peer dependencies (@myriaddreamin/typst-ts*) is >= 0.6.1-rc2.");
+            }
+        } else {
+            output = onlyBody !== false ?
+                html.result.body() :
+                html.result.html();
+        }
+        return {
+            html: output,
+            frontmatter: () => getFrontmatter($typst, doc),
+        };
+    });
 }
 
 export async function renderToHTMLish(

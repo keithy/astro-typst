@@ -70,7 +70,6 @@ export default function (config: AstroTypstConfig, isAstroBuild = false): Plugin
         async transform(_: string, id: string) {
             if (!isTypstFile(id)) return;
             const { path: mainFilePath, opts } = extractOpts(id);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             let isHtml = false;
             if (opts.includes('svg') || opts.includes("img")) {
